@@ -28,16 +28,32 @@
 - (-) grey to G
 - (out) white to D2
 ```
-
+2. GY-65 BMP085 to ESP8266
+```bash
+- (VCC) to 3V
+- (SDA) to D7
+- (SCL) to D6
+- (GND) to G
+```
+3. DS18B20 to ESP8266
+```bash
+- (black) to G
+- (red) to 3V
+- (yellow) to D4
+```
 
 ## Configuration
 ### IP and Port Configuration
 ```bash
-
+const uint16_t port = 14580; 
+const char * host = "103.56.149.95"; 
+WiFiClient client; 
+delay(5000); // 
 ```
 
 ### APRS Call ID & Passcode Configuration
 ```bash
-
+client.println("user PETSEL-13 pass 12984 vers WS-001 filter m/1"); 
+delay (250);
 ```
 **You can get Passcode in https://apps.magicbug.co.uk/passcode/index.php/passcode**
