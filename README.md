@@ -1,8 +1,8 @@
 # APRS-humiditysensor
 
 ## Version
-1. humidty.uno ==> version 1.0
-2. humidity.uno ==> version 2.0 (sending package through the server with API from header)
+1. humidty.uno => version 1.0
+2. humidity.uno => version 2.0 (sending package through the server with API from header)
 
 ## What You Need
 1. NodeMCU ESP8266 v3
