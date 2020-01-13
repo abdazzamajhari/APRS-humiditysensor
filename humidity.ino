@@ -163,7 +163,7 @@ void loop() {
                           + "&bp=" + String(client.print(p)) // Barometric Pressure,Temperature,Altitude
                           + "&location=" + sensorLocation 
                           + "&latitude=" + sensorLatitude 
-                          + "&longitude=" + sensorLongitude + "";
+                          + "&longitude=" + sensorLongitude;
         Serial.print("httpRequestData: ");
         Serial.println(httpRequestData);
         // === END ===
