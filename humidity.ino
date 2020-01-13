@@ -23,7 +23,7 @@ Adafruit_BMP085 bmp;
 
 // Configuration API Server
 // === START ===
-const char * serverName = "https://azhamudev.com";
+const char * serverName = "https://sensor.azhamudev.com/humidity.php";
 String apiKeyValue = "You_Cant&SeeMe!";
 String sensorName = "HUMIDITY";
 String sensorLocation = "PETSEL";
