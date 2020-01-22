@@ -23,12 +23,7 @@ Adafruit_BMP085 bmp;
 
 // Configuration API Server
 // === START ===
-const char * serverName = "https://sensor.azhamudev.com/humidity.php";
-String apiKeyValue = "You_Cant&SeeMe!";
-String sensorName = "HUMIDITY";
-String sensorLocation = "PETSEL";
-String sensorLatitude = "-6.2517081";
-String sensorLongitude = "106.7565931";
+String serverName = "https://sensor.azhamudev.com/log_sensor.php?";
 // === END ===
  
 ESP8266WiFiMulti WiFiMulti;
@@ -153,17 +148,11 @@ void loop() {
         // === START ===
         // Your Domain name with URL path or IP address with path
         http.begin(serverName);
-        // Specify content-type header
-        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
         // Prepare your HTTP POST request data
-        String httpRequestData = "api_key=" + apiKeyValue 
-                          + "&sensor=" + sensorName
-                          + "&dst=" + String(client.print(f)) // Temperature in Fahrenheit
+        String httpRequestData = serverName 
+                          + "dst=" + String(client.print(f)) // Temperature in Fahrenheit
                           + "&h22=" + String(client.print(h)) // Humidity
-                          + "&bp=" + String(client.print(p)) // Barometric Pressure,Temperature,Altitude
-                          + "&location=" + sensorLocation 
-                          + "&latitude=" + sensorLatitude 
-                          + "&longitude=" + sensorLongitude;
+                          + "&bp=" + String(client.print(p)); // Barometric Pressure,Temperature,Altitude
         Serial.print("httpRequestData: ");
         Serial.println(httpRequestData);
         // === END ===
