@@ -20,11 +20,6 @@ Adafruit_BMP085 bmp;
  
 #define USE_SERIAL Serial
 #define SLEEP_DELAY 3000
-
-// Configuration API Server
-// === START ===
-String serverName = "https://sensor.azhamudev.com/log_sensor.php?";
-// === END ===
  
 ESP8266WiFiMulti WiFiMulti;
 DHT dht(DHTPIN, DHTTYPE);
@@ -60,7 +55,7 @@ void setup() {
   USE_SERIAL.begin(115200); 
   USE_SERIAL.flush();    
   delay(1000);
-  WiFiMulti.addAP("Azzam", "azzam53a"); 
+  WiFiMulti.addAP("LKTI_24Ghz", "labir2121"); 
  
   Wire.begin(I2C_SDA, I2C_SCL);
   delay(10);
@@ -144,15 +139,19 @@ void loop() {
         USE_SERIAL.println(h);
         USE_SERIAL.println(p);
 
+        // Configuration API Server
+        // === START ===
+       
+
         // Insert to API Server
         // === START ===
         // Your Domain name with URL path or IP address with path
-        http.begin(serverName);
         // Prepare your HTTP POST request data
-        String httpRequestData = serverName 
-                          + "dst=" + String(client.print(f)) // Temperature in Fahrenheit
-                          + "&h22=" + String(client.print(h)) // Humidity
-                          + "&bp=" + String(client.print(p)); // Barometric Pressure,Temperature,Altitude
+        String httpRequestData = "https://dev.azhamudev.com/api/log_sensor.php?dst="+String(f)+"&h22="+String(h)+"&bp="+String(p);
+        
+        http.begin(httpRequestData);
+//        httpRequestData.begin();
+        
         Serial.print("httpRequestData: ");
         Serial.println(httpRequestData);
         // === END ===
