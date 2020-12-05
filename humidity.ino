@@ -1,6 +1,11 @@
+// SmallMeteo parser to APRS v0.1
+// http://infotex58.ru
+// Огромное спасибо Михаилу aka TurangaLeela за парсер данных! Many thanks TurangaLeela!
+ 
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
+ 
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <stdlib_noniso.h>
@@ -17,6 +22,7 @@ Adafruit_BMP085 bmp;
  
 #define DHTPIN 4 
 #define DHTTYPE DHT22  
+//#define DHTTYPE DHT11
  
 #define USE_SERIAL Serial
 #define SLEEP_DELAY 3000
@@ -24,8 +30,8 @@ Adafruit_BMP085 bmp;
 ESP8266WiFiMulti WiFiMulti;
 DHT dht(DHTPIN, DHTTYPE);
  
-float dst, bt, bp, ba;
-bool bmp085_present = true;
+float dst,bt,bp,ba;
+bool bmp085_present=true;
  
 char * skipControlChars(char * sLine) {
     char * startFrom = sLine;
@@ -34,37 +40,44 @@ char * skipControlChars(char * sLine) {
         if(nullptr == sLine) {
             break;
         }
+    
         if('#' == (*sLine)) {
             if((sLine - startFrom) > 0) {
                 --sLine;
             } else {
                 sLine = nullptr;
-            }   
+            }
+            
             break;
         } else if('\0' == (*sLine)) {
             sLine = nullptr;
         
             break;
         }
+        
         ++sLine;
     }
+    
     return sLine;
 }
  
 void setup() {
-  USE_SERIAL.begin(115200); 
+ 
+  USE_SERIAL.begin(115200); // Скорость порта 
   USE_SERIAL.flush();    
   delay(1000);
-  WiFiMulti.addAP("LKTI_24Ghz", "labir2121"); 
- 
+  
+  WiFiMulti.addAP("Azzam", "azzam53a"); // SSID и пароль точки доступа WIFI
   Wire.begin(I2C_SDA, I2C_SCL);
   delay(10);
   if (!bmp.begin()) {
     USE_SERIAL.println("No BMP085 sensor detected!");
-    bmp085_present = false;
+    bmp085_present=false;
   }
+ 
     dht.begin(); 
 }
+ 
  
 void closeConnection(HTTPClient * pClientToClose) {
   pClientToClose -> end();
@@ -74,21 +87,22 @@ void closeConnection(HTTPClient * pClientToClose) {
 void loop() {
   if((WiFiMulti.run() == WL_CONNECTED)) {
     HTTPClient http;
-
-        // APRS Server
-        const uint16_t port = 14580; 
-        const char * host = "103.56.149.95"; 
-        
-        WiFiClient client; 
-        delay(5000); // 
+    
  
-        if (!client.connect(host, port)) {           
+        const uint16_t port = 14580; // Указываем порт сервера
+        const char * host = "rotate.aprs2.net"; // Указываем имя хоста или его IP
+        WiFiClient client; // Включаем режим WI-FI клиента
+        delay(5000); // курим 5 сек
+ 
+        if (!client.connect(host, port)) {
+           // Если приконектились к серверу то едим дальше иначе ждём ? сек
+            
            return;
         }
-
-        // CALLSIGN & PASSCODE
-        client.println("user PETSEL-13 pass 12984 vers WS-001 filter m/1"); 
+ 
+        client.println("user YD0AVF-13 pass 19617 vers WS-001 filter m/1");  // Логинемся на сервер user UR5TLZ-13 pass 24610 от aprsdroid
         delay (250);
+ 
  
         DS18B20.requestTemperatures();
         dst = DS18B20.getTempCByIndex(0);
@@ -98,11 +112,12 @@ void loop() {
         dst=(dst*1.8)+32;
  
         if(bmp085_present) {
-          bt = bmp.readTemperature();//(bmp.readTemperature() * 9/5) + 32;
+          bt = (bmp.readTemperature() * 9/5) + 32;//bmp.readTemperature();
           USE_SERIAL.print("Temperature bmp: ");
           USE_SERIAL.println(bt);
         }
   
+        
         if(bmp085_present) {
           bp = bmp.readPressure()/10;//133.3224;// / 3386;
           USE_SERIAL.print("Pressure: ");
@@ -117,7 +132,8 @@ void loop() {
         }
  
          float h22 = dht.readHumidity(); 
-         float t22 = dht.readTemperature();
+         float t22 = dht.readTemperature(false);
+      
  
         if (isnan(t22) || isnan(h22)) 
         { 
@@ -131,32 +147,15 @@ void loop() {
           USE_SERIAL.println(h22);
         }
      
-        const int & f = dst; 
-        const int & h = h22; 
-        const int & p = bp; 
+        const int & f = bt; // Температура
+        const int & h = h22; // Влажность
+        const int & p = bp; // Давление
          
-        USE_SERIAL.println(f); 
+        USE_SERIAL.println(f); // смотрим в порту что получаем
         USE_SERIAL.println(h);
         USE_SERIAL.println(p);
-
-        // Configuration API Server
-        // === START ===
-       
-
-        // Insert to API Server
-        // === START ===
-        // Your Domain name with URL path or IP address with path
-        // Prepare your HTTP POST request data
-        String httpRequestData = "https://dev.azhamudev.com/api/log_sensor.php?dst="+String(f)+"&h22="+String(h)+"&bp="+String(p);
-        
-        http.begin(httpRequestData);
-//        httpRequestData.begin();
-        
-        Serial.print("httpRequestData: ");
-        Serial.println(httpRequestData);
-        // === END ===
  
-        client.print("PETSEL-13>APRSWX,TCPIP*,qAC,WIDE1-1:=0615.10S/10645.38E_"); 
+        client.print("YD0AVF-13>APRSWX,TCPIP*,qAC,WIDE1-1:=0614.68S/10645.29E_");     // Поехали кидать инфу на сервак (Указываем позывной и координаты)
         client.print("000/000g...");
         if (f >= 0)
         {
@@ -167,17 +166,17 @@ void loop() {
         client.print("t"); client.print(f);
         }
         client.print("r...p...P...h"); client.print(h);  
-        
         if (p >= 10000)
         {
-        client.print("b"); client.print(p); client.println(" ");
+        client.print("b"); client.print(p);client.println(" "); // Добиваем коммент
         }
         else
         {
-        client.print("b0"); client.print(p); client.println(" "); 
+        client.print("b0"); client.print(p); client.println(" SERVER APRS"); //Добиваем коммент
         }
-        client.println("PETSEL-13>APRSWX,TCPIP*,qAC,WIDE1-1:>"); 
-        
-        delay(10000);  
+        client.println("YD0AVF-13>APRSWX,TCPIP*,qAC,WIDE1-1:> }h05EEWEWWEW{"); // Статус сообщение
+        //client.println("CW0002-13>APRSWX,TCPIP*,qAC,WIDE1-1:>"); // Статус сообщение
+        delay(1000); // Ждём 10 мин перед следующей отправкой пакета
+      
     }
 }
