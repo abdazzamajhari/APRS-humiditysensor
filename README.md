@@ -1,4 +1,5 @@
 # APRS-humiditysensor
+Please star and fork it as your gratitude to my work! Thanks
 
 ## Version
 1. humidty.uno => version 1.0
